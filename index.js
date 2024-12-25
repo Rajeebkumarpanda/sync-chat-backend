@@ -16,11 +16,33 @@ const app = express();
 const port = process.env.PORT || 3003;
 const database = process.env.DATABASE_URL;
 
+
+const allowedOrigins = [
+  process.env.ORIGIN || "http://localhost:5173",
+  "https://sync-chat-frontend-ky772n5xn-rajeeb009gmailcoms-projects.vercel.app"
+];
+
+// app.use(
+//   cors({
+//     origin: process.env.ORIGIN || "http://localhost:5173",
+//     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
+//     credentials: true,
+//   })
+// );
+
+
 app.use(
   cors({
-    origin: process.env.ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., mobile apps or curl requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
-    credentials: true,
+    credentials: true,  // Allow credentials (cookies, authorization headers)
   })
 );
 
@@ -44,6 +66,11 @@ app.use('/api/messages',messagesRoutes)
 
 //channel routes
 app.use('/api/channel',channelRoutes)
+
+
+app.get('*', (req, res) => {
+  res.send('chat app response');
+});
 
 
 const server = app.listen(port, () => {
